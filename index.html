@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الورد اللي فتح في جناين فزارة</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="start-box">
+            <h1>الورد اللي فتح في جناين فزارة</h1>
+            <form id="start-form">
+                <input type="text" id="full-name" placeholder="الاسم الرباعي" required autocomplete="off">
+                <input type="text" id="national-id" placeholder="الرقم القومي" required autocomplete="off" maxlength="14" pattern="[0-9]{14}">
+                <button type="submit">ابدأ المسابقة</button>
+            </form>
+        </div>
+        <div id="quiz-box" style="display:none;">
+            <div id="question"></div>
+            <div id="answers"></div>
+            <button id="next-btn" style="display:none;">السؤال التالي</button>
+        </div>
+        <div id="result" style="display:none;"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
