@@ -38,13 +38,17 @@ window.onload = function() {
         const optionsBox = document.getElementById('options-box');
         optionsBox.innerHTML = "";
         q.options.forEach((opt, idx) => {
-            const label = document.createElement('label');
-            label.style.display = "block";
             const radio = document.createElement('input');
             radio.type = "radio";
             radio.name = "qOption";
             radio.value = idx;
-            radio.onclick = () => document.getElementById('confirm-btn').disabled = false;
+            radio.id = "option" + idx;
+
+            radio.onchange = () => document.getElementById('confirm-btn').disabled = false;
+
+            const label = document.createElement('label');
+            label.htmlFor = radio.id;
+            label.style.display = "block";
             label.appendChild(radio);
             label.appendChild(document.createTextNode(opt));
             optionsBox.appendChild(label);
@@ -77,7 +81,7 @@ window.onload = function() {
         // الحصول على الخيار المختار
         const options = document.getElementsByName('qOption');
         let selected = -1;
-        options.forEach((opt, i) => {
+        options.forEach((opt) => {
             opt.disabled = true;
             if (opt.checked) selected = parseInt(opt.value);
         });
