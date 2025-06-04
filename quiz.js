@@ -1,5 +1,4 @@
-window.onload = function() {
-    const SHEET_API = "https://script.google.com/macros/s/AKfycbxf7Ia9PjVrC2fCWkyHGGrY_kUmazGrCdLKcTLqcfw_xHeOs3ih-zoOfCX5aGlj9PCU-g/exec";
+
 
     // تحقق من وجود بيانات الطفل
     const childNID = localStorage.getItem('childNID');
