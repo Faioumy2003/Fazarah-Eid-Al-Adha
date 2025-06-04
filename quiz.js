@@ -1,8 +1,8 @@
 window.onload = function() {
-    // رابط Google Apps Script الخاص بك:
+    // ضع هنا رابط Google Apps Script الخاص بك:
     const SHEET_API = "https://script.google.com/macros/s/AKfycbxf7Ia9PjVrC2fCWkyHGGrY_kUmazGrCdLKcTLqcfw_xHeOs3ih-zoOfCX5aGlj9PCU-g/exec";
 
-    // دوال المساعدة للخلط والاختيار العشوائي
+    // دوال مساعدة
     function shuffle(array) {
         let arr = [...array];
         for (let i = arr.length - 1; i > 0; i--) {
@@ -15,51 +15,10 @@ window.onload = function() {
         return shuffle(arr).slice(0, n);
     }
 
-    // توليد اختبار فريد مع أقل تشابه مع الاختبار السابق
-    function generateUniqueTest(easyQs, medQs, hardQs, lastTestQs, childAge) {
-        let selectedQuestions;
-        let MAX_COMMON = 2; // أقصى عدد تكرار أسئلة بين اختبارين
-        let tries = 0;
-        do {
-            if (childAge <= 6) {
-                selectedQuestions = [
-                    ...pickRandom(easyQs, 8),
-                    ...pickRandom(medQs, 2)
-                ];
-            } else if (childAge >= 7 && childAge <= 8) {
-                selectedQuestions = [
-                    ...pickRandom(easyQs, 6),
-                    ...pickRandom(medQs, 3),
-                    ...pickRandom(hardQs, 1)
-                ];
-            } else {
-                selectedQuestions = [
-                    ...pickRandom(easyQs, 5),
-                    ...pickRandom(medQs, 3),
-                    ...pickRandom(hardQs, 2)
-                ];
-            }
-            selectedQuestions = shuffle(selectedQuestions);
-
-            // قارن مع آخر اختبار
-            let common = 0;
-            if (lastTestQs && lastTestQs.length > 0) {
-                for (let q of selectedQuestions) {
-                    if (lastTestQs.find(lq => lq.q === q.q)) common++;
-                }
-            }
-            if (common <= MAX_COMMON) break;
-            tries++;
-        } while (tries < 20); // جرب 20 مرة فقط لتسريع الأداء
-
-        return selectedQuestions;
-    }
-
     // جلب بيانات الطفل
     const childNID = localStorage.getItem('childNID');
     const childName = localStorage.getItem('childName');
-    const childAge = parseInt(localStorage.getItem('childAge')); // يجب التأكد من حفظ السن مسبقاً
-
+    const childAge = parseInt(localStorage.getItem('childAge'));
     if (!childNID || !childName || isNaN(childAge)) {
         window.location.href = "index.html";
         return;
@@ -70,27 +29,36 @@ window.onload = function() {
 
     // بنوك الأسئلة
     const easyQs = window.questionsBank && window.questionsBank.easy ? window.questionsBank.easy : [];
-    const medQs = window.questionsBank && window.questionsBank.medium ? window.questionsBank.medium : [];
+    const medQs  = window.questionsBank && window.questionsBank.medium ? window.questionsBank.medium : [];
     const hardQs = window.questionsBank && window.questionsBank.hard ? window.questionsBank.hard : [];
 
-    // استرجاع آخر اختبار (لو موجود) من localStorage
-    let lastTestQs = [];
-    try {
-        lastTestQs = JSON.parse(localStorage.getItem('lastTestQs') || '[]');
-    } catch { lastTestQs = []; }
-
-    // توزيع الأسئلة حسب السن مع منع التشابه الكبير مع آخر اختبار
-    let selectedQuestions = generateUniqueTest(easyQs, medQs, hardQs, lastTestQs, childAge);
-
-    // خزن مجموعة الأسئلة الحالية في localStorage لاستخدامها في المقارنة لاحقاً
-    localStorage.setItem('lastTestQs', JSON.stringify(selectedQuestions));
+    // توزيع الأسئلة حسب السن (غير مسموح بتكرار)
+    let selectedQuestions;
+    if (childAge <= 6) {
+        selectedQuestions = [
+            ...pickRandom(easyQs, 8),
+            ...pickRandom(medQs, 2)
+        ];
+    } else if (childAge >= 7 && childAge <= 8) {
+        selectedQuestions = [
+            ...pickRandom(easyQs, 6),
+            ...pickRandom(medQs, 3),
+            ...pickRandom(hardQs, 1)
+        ];
+    } else {
+        selectedQuestions = [
+            ...pickRandom(easyQs, 5),
+            ...pickRandom(medQs, 3),
+            ...pickRandom(hardQs, 2)
+        ];
+    }
+    selectedQuestions = shuffle(selectedQuestions);
 
     // التحقق من كفاية الأسئلة
     if (selectedQuestions.length < 10) {
         document.getElementById('question-box').textContent = "لا يوجد عدد كافٍ من الأسئلة في بنك الأسئلة.";
         return;
     }
-
     const questions = selectedQuestions;
 
     // منع دخول الاختبار مرتين بنفس الرقم القومي
@@ -146,7 +114,6 @@ window.onload = function() {
 
             const label = document.createElement('label');
             label.htmlFor = radio.id;
-            label.style.display = "block";
             label.appendChild(radio);
             label.appendChild(document.createTextNode(opt));
             optionsBox.appendChild(label);
@@ -186,12 +153,18 @@ window.onload = function() {
 
         userAnswers.push(selected);
 
-        // التصحيح
-        if (selected === questions[current].answer) {
-            score++;
-        }
+        // تلوين الإجابات
+        const q = questions[current];
+        const labels = document.querySelectorAll('#options-box label');
+        labels.forEach((label, idx) => {
+            label.classList.remove('correct', 'incorrect');
+            if (idx === q.answer) label.classList.add('correct');
+            if (selected === idx && selected !== q.answer) label.classList.add('incorrect');
+        });
 
-        // إظهار زر التالي
+        // التصحيح
+        if (selected === q.answer) score++;
+
         document.getElementById('next-btn').style.display = "inline-block";
         document.getElementById('confirm-btn').disabled = true;
     }
