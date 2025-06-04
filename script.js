@@ -1,47 +1,36 @@
-function getRandomQuestions(age) {
-    let easyCount = 0, mediumCount = 0, hardCount = 0;
-
-    if (age <= 6) {
-        easyCount = 8;
-        mediumCount = 2;
-        hardCount = 0;
-    } else if (age >= 7 && age <= 8) {
-        easyCount = 6;
-        mediumCount = 3;
-        hardCount = 1;
-    } else if (age > 8 && age <= 12.5) {
-        easyCount = 5;
-        mediumCount = 3;
-        hardCount = 2;
-    } else {
-        // هنا ممنوع الدخول (تحقق في الكود الرئيسي)
-        return [];
+// سكريبت مبدئي للتحقق من الشروط ويمكن تطويره مع كل خطوة جديدة
+document.querySelector('.entry-form').onsubmit = function(e){
+    e.preventDefault();
+    // التقاط البيانات
+    const fullName = document.getElementById('fullName').value.trim();
+    const nid = document.getElementById('nid').value.trim();
+    const commitment = document.getElementById('commitment').checked;
+    // تحقق الاسم
+    if(fullName.split(" ").length < 4){
+        alert("يرجى كتابة الاسم الرباعي كاملًا.");
+        return;
     }
-
-    // صنف الأسئلة حسب الصعوبة
-    const easy = questionsBank.filter(q => q.difficulty === "سهل");
-    const medium = questionsBank.filter(q => q.difficulty === "متوسط");
-    const hard = questionsBank.filter(q => q.difficulty === "صعب");
-
-    function getRandom(arr, n) {
-        let arrCopy = [...arr];
-        let res = [];
-        for (let i = 0; i < n && arrCopy.length; i++) {
-            const idx = Math.floor(Math.random() * arrCopy.length);
-            res.push(arrCopy.splice(idx,1)[0]);
-        }
-        return res;
+    // تحقق الرقم القومي
+    if(!/^\d{14}$/.test(nid)){
+        alert("الرقم القومي يجب أن يكون 14 رقمًا.");
+        return;
     }
-
-    const selectedEasy = getRandom(easy, easyCount);
-    const selectedMedium = getRandom(medium, mediumCount);
-    const selectedHard = getRandom(hard, hardCount);
-
-    let selected = [...selectedEasy, ...selectedMedium, ...selectedHard];
-    // خلط ترتيب الأسئلة
-    for (let i = selected.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [selected[i], selected[j]] = [selected[j], selected[i]];
+    // تحقق السن بناءً على الرقم القومي
+    const birthYear = parseInt('19' + nid.slice(1,3));
+    const currentYear = new Date().getFullYear();
+    let age = currentYear - birthYear;
+    if (nid[0] === '3') age = currentYear - parseInt('20' + nid.slice(1,3));
+    // أقل من 13 سنة
+    if(age >= 13){
+        alert("المسابقة مخصصة فقط لمن هم أقل من 13 سنة.");
+        return;
     }
-    return selected;
-}
+    // التزام التعهد
+    if(!commitment){
+        alert("يجب أن تتعهد أمام الله أنك ستحل بنفسك.");
+        return;
+    }
+    // يمكنك الآن الانتقال للامتحان أو تنفيذ أي منطق لاحق
+    alert("تم استلام بياناتك! عند بدء المسابقة ستظهر 10 أسئلة مختلفة حسب سنك، ولكل سؤال 30 ثانية ولا يمكن الخروج من الامتحان.");
+    // من هنا يمكنك إظهار صفحة الاختبار ومنع الخروج حسب الخطوة التالية
+};
