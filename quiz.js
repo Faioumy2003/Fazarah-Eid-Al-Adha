@@ -1,80 +1,100 @@
 window.onload = function() {
-    // بيانات الطفل
-    const childNID  = localStorage.getItem('childNID');
+    const SHEET_API = "https://script.google.com/macros/s/AKfycbxf7Ia9PjVrC2fCWkyHGGrY_kUmazGrCdLKcTLqcfw_xHeOs3ih-zoOfCX5aGlj9PCU-g/exec";
+
+    // تحقق من وجود بيانات الطفل
+    const childNID = localStorage.getItem('childNID');
     const childName = localStorage.getItem('childName');
-    const childAge  = parseInt(localStorage.getItem('childAge')) || 0;
     if (!childNID || !childName) {
         window.location.href = "index.html";
         return;
     }
+
+    // عرض اسم الطفل
     document.getElementById('studentName').textContent = childName;
 
     // بنوك الأسئلة
-    const easyQs = (window.questionsBank && window.questionsBank.easy)   ? window.questionsBank.easy   : [];
-    const medQs  = (window.questionsBank && window.questionsBank.medium) ? window.questionsBank.medium : [];
-    const hardQs = (window.questionsBank && window.questionsBank.hard)   ? window.questionsBank.hard   : [];
+    const easyQs = window.questionsBank && window.questionsBank.easy ? window.questionsBank.easy : [];
+    const medQs  = window.questionsBank && window.questionsBank.medium ? window.questionsBank.medium : [];
+    const hardQs = window.questionsBank && window.questionsBank.hard ? window.questionsBank.hard : [];
 
-    // دوال عشوائية
-    function shuffle(array) {
-        let arr = [...array];
-        for (let i = arr.length - 1; i > 0; i--) {
+    // توزيع الأسئلة حسب السن
+    function shuffle(arr) {
+        let a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
+            [a[i], a[j]] = [a[j], a[i]];
         }
-        return arr;
+        return a;
     }
     function pickRandom(arr, n) {
         if (arr.length <= n) return shuffle(arr);
         return shuffle(arr).slice(0, n);
     }
 
-    // توزيع حسب السن
-    function getDistribution(age) {
-        if (age <= 6)    return {easy: 8, medium: 2, hard: 0};
-        if (age <= 8)    return {easy: 6, medium: 3, hard: 1};
-        return                  {easy: 5, medium: 3, hard: 2};
-    }
-
-    // لا تكرر نفس مجموعة الأسئلة مرتين ورا بعض
-    let lastTestQs = [];
+    // توزيع الأسئلة حسب العمر
+    let childAge = 0;
     try {
-        lastTestQs = JSON.parse(localStorage.getItem('lastTestQs') || '[]');
-    } catch { lastTestQs = []; }
-    function areArraysEqual(arr1, arr2) {
-        if (arr1.length !== arr2.length) return false;
-        for(let i=0; i<arr1.length; i++) {
-            if(arr1[i].q !== arr2[i].q) return false;
+        // حساب السن من الرقم القومي
+        const nid = childNID;
+        const birthYear = nid[0] === '3'
+            ? parseInt('20' + nid.slice(1,3))
+            : parseInt('19' + nid.slice(1,3));
+        const currentYear = new Date().getFullYear();
+        childAge = currentYear - birthYear;
+    } catch(e) {}
+
+    // توزيع عادل حسب السن
+    let dist = {easy: 8, medium: 2, hard: 0};
+    if (childAge >= 7 && childAge <= 8) dist = {easy: 6, medium: 3, hard: 1};
+    else if (childAge >= 9) dist = {easy: 5, medium: 3, hard: 2};
+
+    // جلب الأسئلة بشكل عشوائي من كل بنك
+    let questions = [
+        ...pickRandom(easyQs, dist.easy),
+        ...pickRandom(medQs, dist.medium),
+        ...pickRandom(hardQs, dist.hard)
+    ];
+    questions = shuffle(questions).slice(0, 10);
+
+    if (!questions || questions.length === 0) {
+        document.getElementById('question-box').textContent = "لا توجد أسئلة متاحة. تأكد من تحميل بنك الأسئلة بشكل صحيح.";
+        return;
+    }
+
+    // باقي الكود كما هو (لا تغير أي شيء في التصميم)
+    fetch(SHEET_API + `?nid=${encodeURIComponent(childNID)}&action=check`)
+    .then(res => res.json())
+    .then(data => {
+        if (data && data.exists) {
+            document.querySelector('.quiz-content').style.display = "none";
+            const resultBox = document.getElementById('result-box');
+            resultBox.style.display = "block";
+            resultBox.innerHTML = `
+                <div style="border:2px solid #f00; border-radius:10px; padding:20px; background:#fff0f0; color:#900; text-align:center; margin:30px 0;">
+                    لقد شاركت بالفعل ولا يمكنك دخول الاختبار مرة أخرى.
+                </div>
+            `;
+            return;
+        } else {
+            showQuestion();
         }
-        return true;
-    }
+    })
+    .catch(() => {
+        document.getElementById('question-box').textContent = "حدث خطأ في التحقق من الاشتراك السابق. حاول التحديث أو التواصل مع المنظم.";
+    });
 
-    function generateTest(easyQs, medQs, hardQs, age, lastTestQs) {
-        let selectedQuestions, tries = 0;
-        const dist = getDistribution(age);
-        do {
-            selectedQuestions = [
-                ...pickRandom(easyQs, dist.easy),
-                ...pickRandom(medQs, dist.medium),
-                ...pickRandom(hardQs, dist.hard)
-            ];
-            selectedQuestions = shuffle(selectedQuestions).slice(0, 10);
-            tries++;
-        } while (tries < 20 && areArraysEqual(selectedQuestions, lastTestQs));
-        return selectedQuestions;
-    }
+    // إعداد متغيرات الحالة
+    let current = 0;
+    let userAnswers = [];
+    let score = 0;
+    let timer;
+    let timeLeft = 30;
 
-    // اختيار العشرة أسئلة
-    const questions = generateTest(easyQs, medQs, hardQs, childAge, lastTestQs);
-    localStorage.setItem('lastTestQs', JSON.stringify(questions));
-
-    // متغيرات الامتحان
-    let current = 0, userAnswers = [], score = 0, timer, timeLeft = 30;
-
-    // عرض سؤال
+    // دالة لعرض سؤال
     function showQuestion() {
         clearInterval(timer);
         timeLeft = 30;
-        if (document.getElementById('timer')) document.getElementById('timer').textContent = timeLeft;
+        document.getElementById('timer').textContent = timeLeft;
         startTimer();
 
         const q = questions[current];
@@ -104,11 +124,11 @@ window.onload = function() {
         document.getElementById('next-btn').style.display = "none";
     }
 
-    // المؤقت
+    // دالة المؤقت
     function startTimer() {
         timer = setInterval(() => {
             timeLeft--;
-            if (document.getElementById('timer')) document.getElementById('timer').textContent = timeLeft;
+            document.getElementById('timer').textContent = timeLeft;
             if (timeLeft <= 0) {
                 clearInterval(timer);
                 lockAnswer();
@@ -116,7 +136,7 @@ window.onload = function() {
         }, 1000);
     }
 
-    // تأكيد الإجابة
+    // عند تأكيد الاختيار
     document.getElementById('confirm-btn').onclick = function () {
         lockAnswer();
     };
@@ -124,7 +144,7 @@ window.onload = function() {
     function lockAnswer() {
         clearInterval(timer);
 
-        // الخيار المختار
+        // الحصول على الخيار المختار
         const options = document.getElementsByName('qOption');
         let selected = -1;
         options.forEach((opt) => {
@@ -140,12 +160,12 @@ window.onload = function() {
             score++;
         }
 
-        // زر التالي
+        // إظهار زر التالي
         document.getElementById('next-btn').style.display = "inline-block";
         document.getElementById('confirm-btn').disabled = true;
     }
 
-    // السؤال التالي
+    // عند الضغط على زر "السؤال التالي"
     document.getElementById('next-btn').onclick = function () {
         current++;
         if (current < 10) {
@@ -155,36 +175,44 @@ window.onload = function() {
         }
     };
 
-    // النتيجة النهائية
+    // إظهار النتيجة النهائية مع حفظها في Google Sheet
     function showResult() {
-        if (document.querySelector('.quiz-content')) document.querySelector('.quiz-content').style.display = "none";
+        document.querySelector('.quiz-content').style.display = "none";
         const resultBox = document.getElementById('result-box');
-        if (resultBox) {
-            resultBox.style.display = "block";
-            let messageHTML = "";
-            if (score >= 8) {
-                messageHTML = `
-                    <div style="border: 3px solid #ff69b4; border-radius: 18px; padding: 18px; background: #fff0f6; margin: 18px 0; text-align:center; font-size:1.2em;">
-                        <span style="font-size:2em;">🌸🌸🌸</span><br>
-                        تهانينا يا حبيبي ، ليك جائزة
-                        <br><span style="font-size:2em;">🌸🌸🌸</span>
-                    </div>
-                `;
-            } else {
-                messageHTML = `
-                    <div style="border: 2px dashed #bbb; border-radius: 12px; padding: 14px; background: #f9f9f9; margin: 18px 0; text-align:center; font-size:1.1em;">
-                        حظ أوفر المرة الجاية يا حبيبي
-                    </div>
-                `;
-            }
-            resultBox.innerHTML = `
-                <h2>انتهت المسابقة!</h2>
-                <p>درجتك: ${score} من 10</p>
-                ${messageHTML}
+        resultBox.style.display = "block";
+
+        // إرسال النتيجة إلى Google Sheet
+        fetch(SHEET_API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: childName,
+                nid: childNID,
+                score: score
+            })
+        });
+
+        let messageHTML = "";
+        if (score >= 8) {
+            messageHTML = `
+                <div style="border: 3px solid #ff69b4; border-radius: 18px; padding: 18px; background: #fff0f6; margin: 18px 0; text-align:center; font-size:1.2em;">
+                    <span style="font-size:2em;">🌸🌸🌸</span><br>
+                    تهانينا يا حبيبي ، ليك جائزة
+                    <br><span style="font-size:2em;">🌸🌸🌸</span>
+                </div>
+            `;
+        } else {
+            messageHTML = `
+                <div style="border: 2px dashed #bbb; border-radius: 12px; padding: 14px; background: #f9f9f9; margin: 18px 0; text-align:center; font-size:1.1em;">
+                    حظ أوفر المرة الجاية يا حبيبي
+                </div>
             `;
         }
-    }
 
-    // ابدأ الامتحان على طول
-    showQuestion();
+        resultBox.innerHTML = `
+            <h2>انتهت المسابقة!</h2>
+            <p>درجتك: ${score} من 10</p>
+            ${messageHTML}
+        `;
+    }
 };
