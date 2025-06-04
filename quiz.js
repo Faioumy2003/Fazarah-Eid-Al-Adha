@@ -1,7 +1,5 @@
 window.onload = function() {
-   const SHEET_API = "https://script.google.com/macros/s/AKfycbyeklnV3sEdhEvMEZ-UDzVhqMZt8ipR9AedDmlkwaQP8HywLh3wWJc-Ah8IaqZmQhSrSQ/exec";
-    // ... باقي الكود بدون أي تغيير ...
-};
+    const SHEET_API = "https://script.google.com/macros/s/AKfycbxf7Ia9PjVrC2fCWkyHGGrY_kUmazGrCdLKcTLqcfw_xHeOs3ih-zoOfCX5aGlj9PCU-g/exec";
 
     // تحقق من وجود بيانات الطفل
     const childNID = localStorage.getItem('childNID');
