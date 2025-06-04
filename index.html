@@ -1,31 +1,90 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
+    <title>الورد اللي فتح في جناين فزارة</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الورد اللي فتح في جناين فزارة 🌸😊</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container">
-    <div id="start-box">
-        <h1>الورد اللي فتح في جناين فزارة <span style="font-size:1.6em;">🌸😊</span></h1>
-        <p style="color:#d35400; font-weight:bold; background:#fffbe9; padding:10px 8px; border-radius:10px;">
-          ⚠️ هذا الاختبار لمرة واحدة فقط لكل طفل، والمشاركة أكثر من مرة غير مسموحة لضمان عدالة الجائزة.
-        </p>
-        <form id="start-form">
-            <input type="text" id="full-name" placeholder="الاسم الرباعي" required autocomplete="off">
-            <input type="text" id="national-id" placeholder="الرقم القومي" required autocomplete="off" maxlength="14" pattern="[0-9]{14}">
-            <button type="submit">ابدأ المسابقة</button>
+    <div class="container">
+
+        <!-- العنوان الرئيسي مع الإيموجي -->
+        <h1 class="main-title">
+            الورد اللي فتح في جناين فزارة
+            <span class="emoji">😊🌸</span>
+        </h1>
+
+        <!-- جملة الترحيب داخل إطار لطيف -->
+        <div class="welcome-frame">
+            <span class="flower">🌸</span>
+            <span class="welcome-text">
+                أهلنا الكرام، رجال بلدنا الفضلاء ونساءها الكريمات وأبناءها النجباء: كل عام وأنتم بألف خير وعيدكم مبارك وسعيد.<br>
+                كلوا لحمة وانبسطوا وافرحوا وفرحوا غيركم وأحيوا سنة التكبير وأظهروا البهجة ولا تنسونا من صالح دعائكم
+            </span>
+            <span class="flower">🌸</span>
+        </div>
+
+        <!-- نموذج البيانات -->
+        <form class="entry-form" autocomplete="off">
+            <div class="input-group">
+                <label for="fullName">الاسم الرباعي</label>
+                <input type="text" id="fullName" name="fullName" placeholder="اكتب اسمك الرباعي هنا" required>
+            </div>
+            <div class="input-group">
+                <label for="nid">الرقم القومي</label>
+                <input type="text" id="nid" name="nid" placeholder="اكتب الرقم القومي كاملاً" maxlength="14" pattern="\d{14}" required>
+            </div>
+            <div class="input-group checkbox-group">
+                <input type="checkbox" id="commitment" required>
+                <label for="commitment" class="commitment-label">
+                   أتعهد أمام الله أن أجيب على الأسئلة بنفسي دون مساعدة من أحد
+                </label>
+            </div>
+            <div class="cheat-warning">
+                (على فكرة... الغش حرام وربنا شايفك! 😄)
+            </div>
+            <button type="submit" class="start-btn">ابدأ المسابقة</button>
         </form>
+
+        <!-- الشروط (معاد صياغتها بشكل جذاب) -->
+        <div class="rules-box">
+            <h3><span class="flower">🌼</span> الشروط الأساسية للمسابقة <span class="flower">🌼</span></h3>
+            <ul class="attractive-rules">
+                <li>
+                    <span class="rule-icon">🧒</span>
+                    المشاركة متاحة لكل طفل مرة واحدة فقط طوال فترة المسابقة.
+                </li>
+                <li>
+                    <span class="rule-icon">🎂</span>
+                    المسابقة مخصصة للأطفال الأقل من 13 سنة، وسيتم التأكد من العمر تلقائيًا باستخدام الرقم القومي.
+                </li>
+                <li>
+                    <span class="rule-icon">🤲</span>
+                    يجب أن يجيب الطفل بنفسه دون أي مساعدة، ويؤكد ذلك بتعهده أمام الله على الأمانة.
+                </li>
+                <li>
+                    <span class="rule-icon">📝</span>
+                    تتكون المسابقة من 10 أسئلة متنوعة، يتم اختيارها بما يتناسب مع سن كل طفل.
+                </li>
+                <li>
+                    <span class="rule-icon">⏰</span>
+                    لكل سؤال 30 ثانية فقط للإجابة؛ لا يمكن إعادة السؤال أو الرجوع له بعد تجاوزه.
+                </li>
+                <li>
+                    <span class="rule-icon">🔒</span>
+                    بعد بدء المسابقة، لن يمكنك الخروج أو إعادة الدخول للاختبار.
+                </li>
+            </ul>
+            <div class="good-luck">
+                🌟 بالتوفيق لكل الأبطال الصغار، ونتمنى لكم عيدًا سعيدًا مليئًا بالفرحة! 🌟
+            </div>
+        </div>
     </div>
-    <div id="quiz-box" style="display:none;">
-        <div id="question"></div>
-        <div id="answers"></div>
-        <button id="next-btn" style="display:none;">السؤال التالي</button>
-    </div>
-    <div id="result" style="display:none;"></div>
-</div>
-<script src="script.js"></script>
+    <footer class="footer-bar">
+        <span class="copyright-icon">©</span>
+        <span>حقوق النشر محفوظة د. محمد محمود الفيومي</span>
+    </footer>
+    <script src="script.js"></script>
 </body>
 </html>
