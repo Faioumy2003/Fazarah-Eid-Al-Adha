@@ -1,8 +1,6 @@
 window.onload = function() {
-    // ضع هنا رابط Google Apps Script الخاص بك:
     const SHEET_API = "https://script.google.com/macros/s/AKfycbxf7Ia9PjVrC2fCWkyHGGrY_kUmazGrCdLKcTLqcfw_xHeOs3ih-zoOfCX5aGlj9PCU-g/exec";
 
-    // تحقق من وجود بيانات الطفل
     const childNID = localStorage.getItem('childNID');
     const childName = localStorage.getItem('childName');
     if (!childNID || !childName) {
@@ -10,15 +8,12 @@ window.onload = function() {
         return;
     }
 
-    // عرض اسم الطفل
     document.getElementById('studentName').textContent = childName;
 
-    // بنوك الأسئلة
     const easyQs = window.questionsBank && window.questionsBank.easy ? window.questionsBank.easy : [];
     const medQs  = window.questionsBank && window.questionsBank.medium ? window.questionsBank.medium : [];
     const hardQs = window.questionsBank && window.questionsBank.hard ? window.questionsBank.hard : [];
 
-    // دوال المساعدة
     function shuffle(arr) {
         let a = [...arr];
         for (let i = a.length - 1; i > 0; i--) {
@@ -32,10 +27,8 @@ window.onload = function() {
         return shuffle(arr).slice(0, n);
     }
 
-    // توزيع الأسئلة حسب العمر
     let childAge = 0;
     try {
-        // حساب السن من الرقم القومي
         const nid = childNID;
         const birthYear = nid[0] === '3'
             ? parseInt('20' + nid.slice(1,3))
@@ -44,12 +37,10 @@ window.onload = function() {
         childAge = currentYear - birthYear;
     } catch(e) {}
 
-    // توزيع عادل حسب السن
     let dist = {easy: 8, medium: 2, hard: 0};
     if (childAge >= 7 && childAge <= 8) dist = {easy: 6, medium: 3, hard: 1};
     else if (childAge >= 9) dist = {easy: 5, medium: 3, hard: 2};
 
-    // جلب الأسئلة بشكل عشوائي من كل بنك
     let questions = [
         ...pickRandom(easyQs, dist.easy),
         ...pickRandom(medQs, dist.medium),
@@ -62,7 +53,6 @@ window.onload = function() {
         return;
     }
 
-    // منع دخول الاختبار مرتين بنفس الرقم القومي
     fetch(SHEET_API + `?nid=${encodeURIComponent(childNID)}&action=check`)
     .then(res => res.json())
     .then(data => {
@@ -77,7 +67,6 @@ window.onload = function() {
             `;
             return;
         } else {
-            // ابدأ الامتحان
             showQuestion();
         }
     })
@@ -85,14 +74,12 @@ window.onload = function() {
         document.getElementById('question-box').textContent = "حدث خطأ في التحقق من الاشتراك السابق. حاول التحديث أو التواصل مع المنظم.";
     });
 
-    // إعداد متغيرات الحالة
     let current = 0;
     let userAnswers = [];
     let score = 0;
     let timer;
     let timeLeft = 30;
 
-    // دالة لعرض سؤال
     function showQuestion() {
         clearInterval(timer);
         timeLeft = 30;
@@ -102,7 +89,6 @@ window.onload = function() {
         const q = questions[current];
         document.getElementById('question-box').textContent = q.q;
 
-        // عرض الخيارات
         const optionsBox = document.getElementById('options-box');
         optionsBox.innerHTML = "";
         q.options.forEach((opt, idx) => {
@@ -126,7 +112,6 @@ window.onload = function() {
         document.getElementById('next-btn').style.display = "none";
     }
 
-    // دالة المؤقت
     function startTimer() {
         timer = setInterval(() => {
             timeLeft--;
@@ -138,7 +123,6 @@ window.onload = function() {
         }, 1000);
     }
 
-    // عند تأكيد الاختيار
     document.getElementById('confirm-btn').onclick = function () {
         lockAnswer();
     };
@@ -146,7 +130,6 @@ window.onload = function() {
     function lockAnswer() {
         clearInterval(timer);
 
-        // الحصول على الخيار المختار
         const options = document.getElementsByName('qOption');
         let selected = -1;
         options.forEach((opt) => {
@@ -156,18 +139,15 @@ window.onload = function() {
 
         userAnswers.push(selected);
 
-        // التصحيح (يدعم answer أو correct)
         const correct = typeof questions[current].correct !== "undefined" ? questions[current].correct : questions[current].answer;
         if (selected === correct) {
             score++;
         }
 
-        // إظهار زر التالي
         document.getElementById('next-btn').style.display = "inline-block";
         document.getElementById('confirm-btn').disabled = true;
     }
 
-    // عند الضغط على زر "السؤال التالي"
     document.getElementById('next-btn').onclick = function () {
         current++;
         if (current < 10) {
@@ -177,13 +157,11 @@ window.onload = function() {
         }
     };
 
-    // إظهار النتيجة النهائية مع حفظها في Google Sheet
     function showResult() {
         document.querySelector('.quiz-content').style.display = "none";
         const resultBox = document.getElementById('result-box');
         resultBox.style.display = "block";
 
-        // إرسال النتيجة إلى Google Sheet
         fetch(SHEET_API, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
