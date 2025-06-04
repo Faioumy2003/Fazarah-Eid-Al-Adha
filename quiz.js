@@ -113,9 +113,26 @@ window.onload = function() {
         document.querySelector('.quiz-content').style.display = "none";
         const resultBox = document.getElementById('result-box');
         resultBox.style.display = "block";
+        let messageHTML = "";
+        if (score >= 8) {
+            messageHTML = `
+                <div style="border: 3px solid #ff69b4; border-radius: 18px; padding: 18px; background: #fff0f6; margin: 18px 0; text-align:center; font-size:1.2em;">
+                    <span style="font-size:2em;">🌸🌸🌸</span><br>
+                    تهانينا يا حبيبي ، ليك جائزة
+                    <br><span style="font-size:2em;">🌸🌸🌸</span>
+                </div>
+            `;
+        } else {
+            messageHTML = `
+                <div style="border: 2px dashed #bbb; border-radius: 12px; padding: 14px; background: #f9f9f9; margin: 18px 0; text-align:center; font-size:1.1em;">
+                    حظ أوفر المرة الجاية يا حبيبي
+                </div>
+            `;
+        }
         resultBox.innerHTML = `<h2>انتهت المسابقة!</h2>
             <p>أحسنت يا ${childName}!</p>
-            <p>درجتك: ${score} من 10</p>`;
+            <p>درجتك: ${score} من 10</p>
+            ${messageHTML}`;
     }
 
     // ابدأ الامتحان
