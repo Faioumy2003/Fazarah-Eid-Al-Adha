@@ -1,5 +1,4 @@
 window.onload = function() {
-    // حذف أي كود لجوجل شيت أو حفظ النتائج في أماكن خارجية، فقط عرض الأسئلة والإجابات
     const childNID = localStorage.getItem('childNID');
     const childName = localStorage.getItem('childName');
     if (!childNID || !childName) {
@@ -9,10 +8,10 @@ window.onload = function() {
 
     document.getElementById('studentName').textContent = childName;
 
-    // التأكد من تحميل الأسئلة
-    const easyQs = window.questionsBank && window.questionsBank.easy ? window.questionsBank.easy : [];
-    const medQs  = window.questionsBank && window.questionsBank.medium ? window.questionsBank.medium : [];
-    const hardQs = window.questionsBank && window.questionsBank.hard ? window.questionsBank.hard : [];
+    // دعم جميع طرق تعريف الأسئلة (answer/correct)
+    const easyQs = window.questionsBank && Array.isArray(window.questionsBank.easy) ? window.questionsBank.easy : [];
+    const medQs  = window.questionsBank && Array.isArray(window.questionsBank.medium) ? window.questionsBank.medium : [];
+    const hardQs = window.questionsBank && Array.isArray(window.questionsBank.hard) ? window.questionsBank.hard : [];
 
     function shuffle(arr) {
         let a = [...arr];
@@ -41,7 +40,6 @@ window.onload = function() {
     if (childAge >= 7 && childAge <= 8) dist = {easy: 6, medium: 3, hard: 1};
     else if (childAge >= 9) dist = {easy: 5, medium: 3, hard: 2};
 
-    // جمع الأسئلة من كل مستوى حسب السن
     let questions = [
         ...pickRandom(easyQs, dist.easy),
         ...pickRandom(medQs, dist.medium),
@@ -49,8 +47,10 @@ window.onload = function() {
     ];
     questions = shuffle(questions).slice(0, 10);
 
-    if (!questions || questions.length === 0) {
+    // إذا لم يتم تحميل الأسئلة لأي سبب
+    if (!questions || questions.length === 0 || !questions[0] || !questions[0].q) {
         document.getElementById('question-box').textContent = "لا توجد أسئلة متاحة. تأكد من تحميل بنك الأسئلة بشكل صحيح.";
+        document.getElementById('options-box').innerHTML = "";
         return;
     }
 
@@ -114,7 +114,7 @@ window.onload = function() {
 
         userAnswers.push(selectedOption);
 
-        // دعم كل من answer أو correct
+        // دعم answer/correct
         const correct = typeof questions[current].correct !== "undefined" ? questions[current].correct : questions[current].answer;
         if (selectedOption === correct) {
             score++;
