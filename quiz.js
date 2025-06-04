@@ -1,4 +1,6 @@
-
+window.onload = function() {
+    // ضع هنا رابط Google Apps Script الخاص بك:
+    const SHEET_API = "https://script.google.com/macros/s/AKfycbxf7Ia9PjVrC2fCWkyHGGrY_kUmazGrCdLKcTLqcfw_xHeOs3ih-zoOfCX5aGlj9PCU-g/exec";
 
     // تحقق من وجود بيانات الطفل
     const childNID = localStorage.getItem('childNID');
@@ -16,7 +18,7 @@
     const medQs  = window.questionsBank && window.questionsBank.medium ? window.questionsBank.medium : [];
     const hardQs = window.questionsBank && window.questionsBank.hard ? window.questionsBank.hard : [];
 
-    // توزيع الأسئلة حسب السن
+    // دوال المساعدة
     function shuffle(arr) {
         let a = [...arr];
         for (let i = a.length - 1; i > 0; i--) {
@@ -60,7 +62,7 @@
         return;
     }
 
-    // باقي الكود كما هو (لا تغير أي شيء في التصميم)
+    // منع دخول الاختبار مرتين بنفس الرقم القومي
     fetch(SHEET_API + `?nid=${encodeURIComponent(childNID)}&action=check`)
     .then(res => res.json())
     .then(data => {
@@ -75,6 +77,7 @@
             `;
             return;
         } else {
+            // ابدأ الامتحان
             showQuestion();
         }
     })
