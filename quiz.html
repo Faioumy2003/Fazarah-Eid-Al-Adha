@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>امتحان المسابقة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="quiz.css">
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <span id="studentName"></span>
+            <span id="studentAge"></span>
+        </div>
+        <div class="quiz-content">
+            <div id="timer-box">
+                <span class="timer-icon">⏰</span>
+                <span id="timer">30</span>
+                <span>ثانية</span>
+            </div>
+            <div id="question-box"></div>
+            <div id="options-box"></div>
+            <button id="confirm-btn" disabled>تأكيد الاختيار</button>
+            <button id="next-btn" style="display:none">السؤال التالي</button>
+        </div>
+        <div id="result-box" style="display:none"></div>
+    </div>
+    <footer class="footer-bar">
+        <span class="copyright-icon">©</span>
+        <span>حقوق النشر محفوظة د. محمد محمود الفيومي</span>
+    </footer>
+    <script src="questions.js"></script>
+    <script src="quiz.js"></script>
+</body>
+</html>
