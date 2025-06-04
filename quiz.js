@@ -1,6 +1,4 @@
 window.onload = function() {
-    const SHEET_API = "https://script.google.com/macros/s/AKfycbySPAftT3_B718JP5vEve7TGe508x9X3BgSGH_QrZmwBn-94jxi0r_x-nFaAEIe6mpBoQ/exec";
-
     const childNID = localStorage.getItem('childNID');
     const childName = localStorage.getItem('childName');
     if (!childNID || !childName) {
@@ -53,53 +51,12 @@ window.onload = function() {
         return;
     }
 
-    fetch(SHEET_API + `?nid=${encodeURIComponent(childNID)}&action=check`)
-    .then(res => res.json())
-    .then(data => {
-        if (data && data.exists) {
-            document.querySelector('.quiz-content').style.display = "none";
-            const resultBox = document.getElementById('result-box');
-            resultBox.style.display = "block";
-            resultBox.innerHTML = `
-                <div style="border:2px solid #f00; border-radius:10px; padding:20px; background:#fff0f0; color:#900; text-align:center; margin:30px 0;">
-                    لقد شاركت بالفعل ولا يمكنك دخول الاختبار مرة أخرى.
-                </div>
-            `;
-            return;
-        } else {
-            showQuestion();
-        }
-    })
-    .catch(() => {
-        document.getElementById('question-box').textContent = "حدث خطأ في التحقق من الاشتراك السابق. حاول التحديث أو التواصل مع المنظم.";
-    });
-
     let current = 0;
     let userAnswers = [];
     let score = 0;
     let timer;
     let timeLeft = 30;
-
-    // زر إنهاء المسابقة - يتم إنشاؤه مرة واحدة فقط
-    let finishBtn = document.createElement('button');
-    finishBtn.id = "finish-btn";
-    finishBtn.textContent = "إنهاء المسابقة";
-    finishBtn.style.display = "none";
-    finishBtn.style.padding = "18px 40px";
-    finishBtn.style.fontSize = "1.2em";
-    finishBtn.style.margin = "20px auto";
-    finishBtn.style.background = "#4CAF50";
-    finishBtn.style.color = "#fff";
-    finishBtn.style.border = "none";
-    finishBtn.style.borderRadius = "10px";
-    finishBtn.style.cursor = "pointer";
-    finishBtn.onclick = function() { showResult(); };
-
-    // إضافة الزر بعد عناصر الكويز
-    let quizContent = document.querySelector('.quiz-content');
-    if (quizContent && !document.getElementById('finish-btn')) {
-        quizContent.appendChild(finishBtn);
-    }
+    let selectedOption = -1;
 
     function showQuestion() {
         clearInterval(timer);
@@ -108,41 +65,27 @@ window.onload = function() {
         startTimer();
 
         const q = questions[current];
-        // تكبير خط السؤال
-        let qBox = document.getElementById('question-box');
-        qBox.textContent = q.q;
-        qBox.style.fontSize = "1.6em";
-        qBox.style.fontWeight = "bold";
-        qBox.style.margin = "18px 0";
+        document.getElementById('question-box').textContent = q.q;
 
         const optionsBox = document.getElementById('options-box');
         optionsBox.innerHTML = "";
+        selectedOption = -1;
         q.options.forEach((opt, idx) => {
-            const radio = document.createElement('input');
-            radio.type = "radio";
-            radio.name = "qOption";
-            radio.value = idx;
-            radio.id = "option" + idx;
-
-            radio.onchange = () => document.getElementById('confirm-btn').disabled = false;
-
-            const label = document.createElement('label');
-            label.htmlFor = radio.id;
-            label.style.display = "block";
-            label.appendChild(radio);
-            label.appendChild(document.createTextNode(opt));
-            optionsBox.appendChild(label);
+            const btn = document.createElement('button');
+            btn.type = "button";
+            btn.className = "option-btn";
+            btn.textContent = opt;
+            btn.onclick = function () {
+                Array.from(optionsBox.children).forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedOption = idx;
+                document.getElementById('confirm-btn').disabled = false;
+            };
+            optionsBox.appendChild(btn);
         });
 
         document.getElementById('confirm-btn').disabled = true;
         document.getElementById('next-btn').style.display = "none";
-
-        // إظهار زر إنهاء المسابقة فقط في آخر سؤال
-        if (current === 9) {
-            finishBtn.style.display = "block";
-        } else {
-            finishBtn.style.display = "none";
-        }
     }
 
     function startTimer() {
@@ -156,10 +99,6 @@ window.onload = function() {
         }, 1000);
     }
 
-    document.getElementById('confirm-btn').style.fontSize = "1.3em"; // تكبير زر تأكيد الإجابة
-    document.getElementById('confirm-btn').style.padding = "14px 32px";
-    document.getElementById('confirm-btn').style.margin = "14px 0";
-
     document.getElementById('confirm-btn').onclick = function () {
         lockAnswer();
     };
@@ -167,20 +106,28 @@ window.onload = function() {
     function lockAnswer() {
         clearInterval(timer);
 
-        const options = document.getElementsByName('qOption');
-        let selected = -1;
-        options.forEach((opt) => {
-            opt.disabled = true;
-            if (opt.checked) selected = parseInt(opt.value);
-        });
+        // تعطيل كل الأزرار
+        Array.from(document.querySelectorAll('.option-btn')).forEach(btn => btn.disabled = true);
 
-        userAnswers.push(selected);
+        userAnswers.push(selectedOption);
 
         const correct = typeof questions[current].correct !== "undefined" ? questions[current].correct : questions[current].answer;
-        if (selected === correct) {
+        if (selectedOption === correct) {
             score++;
         }
 
+        // إبراز الألوان
+        Array.from(document.querySelectorAll('.option-btn')).forEach((btn, idx) => {
+            if(idx === correct) btn.style.background = "#d4f7d4";
+            if(idx === selectedOption && selectedOption !== correct) btn.style.background = "#ffd3d3";
+        });
+
+        // إذا كان آخر سؤال: غيّر الزر إلى "إنهاء المسابقة"
+        if(current === 9){
+            document.getElementById('next-btn').textContent = "إنهاء المسابقة";
+        } else {
+            document.getElementById('next-btn').textContent = "السؤال التالي";
+        }
         document.getElementById('next-btn').style.display = "inline-block";
         document.getElementById('confirm-btn').disabled = true;
     }
@@ -194,21 +141,47 @@ window.onload = function() {
         }
     };
 
+    // دالة لحفظ النتيجة محليًا (LocalStorage)
+    function saveResultLocally(name, nid, score) {
+        let results = JSON.parse(localStorage.getItem('localResults') || "[]");
+        results.push({
+            name: name,
+            nid: nid,
+            score: score,
+            date: new Date().toLocaleString()
+        });
+        localStorage.setItem('localResults', JSON.stringify(results));
+    }
+
+    // دالة لتحميل النتائج كملف CSV
+    window.downloadResultsCSV = function() {
+        let results = JSON.parse(localStorage.getItem('localResults') || "[]");
+        if(results.length === 0) {
+            alert("لا توجد بيانات محفوظة بعد.");
+            return;
+        }
+        let csv = "الاسم,الرقم القومي,الدرجة,التاريخ\n";
+        results.forEach(r => {
+            csv += `"${r.name}","${r.nid}","${r.score}","${r.date}"\n`;
+        });
+        let blob = new Blob([csv], {type: 'text/csv'});
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = url;
+        a.download = "quiz_results.csv";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     function showResult() {
         document.querySelector('.quiz-content').style.display = "none";
         const resultBox = document.getElementById('result-box');
         resultBox.style.display = "block";
 
-        // يرسل النتائج لجوجل شيت تلقائيًا
-        fetch(SHEET_API, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                name: childName,
-                nid: childNID,
-                score: score
-            })
-        });
+        // حفظ النتيجة محليًا
+        saveResultLocally(childName, childNID, score);
 
         let messageHTML = "";
         if (score >= 8) {
@@ -227,10 +200,15 @@ window.onload = function() {
             `;
         }
 
+        // إضافة زر تحميل النتائج بعد ظهور النتيجة فقط
         resultBox.innerHTML = `
             <h2>انتهت المسابقة!</h2>
             <p>درجتك: ${score} من 10</p>
             ${messageHTML}
+            <button onclick="downloadResultsCSV()" style="margin-top:20px;padding:10px 20px;font-size:1.05em;border-radius:8px;background:#1976d2;color:#fff;border:none;cursor:pointer;">تحميل كل النتائج (CSV)</button>
         `;
     }
+
+    // عرض أول سؤال عند البداية
+    showQuestion();
 };
