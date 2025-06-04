@@ -1,0 +1,112 @@
+.quiz-container {
+    max-width: 430px;
+    margin: 30px auto 48px auto;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 32px #0000001c;
+    padding: 28px 12px 18px 12px;
+    text-align: center;
+}
+
+.quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.08em;
+    margin-bottom: 15px;
+    color: #1976d2;
+    font-weight: bold;
+    direction: rtl;
+    gap: 6px;
+}
+
+#timer-box {
+    background: #e3f2fd;
+    color: #1565c0;
+    border-radius: 8px;
+    padding: 10px 0;
+    width: 120px;
+    margin: 0 auto 14px auto;
+    font-size: 1.15em;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    letter-spacing: 1px;
+}
+
+.timer-icon {
+    font-size: 1.15em;
+}
+
+#question-box {
+    font-size: 1.13em;
+    color: #2e7031;
+    font-weight: bold;
+    margin-bottom: 17px;
+    min-height: 50px;
+    direction: rtl;
+}
+
+#options-box {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    margin-bottom: 18px;
+}
+
+.option-btn {
+    background: #fffde7;
+    color: #424242;
+    border: 2px solid #ffe082;
+    border-radius: 9px;
+    padding: 11px 10px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s, border 0.2s, box-shadow 0.2s;
+    text-align: right;
+    outline: none;
+}
+.option-btn.selected,
+.option-btn:active {
+    background: #fff9c4;
+    border-color: #ffd54f;
+    color: #388e3c;
+    font-weight: bold;
+    box-shadow: 0 2px 12px #ffd54f57;
+}
+
+#next-btn {
+    background: #1565c0;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.08em;
+    padding: 11px 0;
+    margin-top: 7px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-weight: bold;
+    box-shadow: 0 3px 12px #1565c025;
+    width: 100%;
+    letter-spacing: 1px;
+}
+#next-btn:disabled {
+    background: #bbdefb;
+    color: #456;
+    cursor: not-allowed;
+}
+
+#result-box {
+    background: #e8f5e9;
+    border: 2px solid #66bb6a;
+    border-radius: 13px;
+    color: #2e7031;
+    font-size: 1.19em;
+    font-weight: bold;
+    padding: 25px 10px 20px 10px;
+    margin-top: 35px;
+    letter-spacing: 1px;
+    min-height: 100px;
+}
