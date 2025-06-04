@@ -1,5 +1,5 @@
 window.onload = function() {
-    const SHEET_API = "https://script.google.com/macros/s/AKfycbwAcpMK2DnV5htBsKmS2RJ8wqhvpqsuJ428GcfrhdATCV6vvJCj9jZtOLaec3wx5GrQrQ/exec";
+    const SHEET_API = "https://script.google.com/macros/s/AKfycbzAWuxI6DfYp8JSVzYhvA9KmbzcX27QZ4HGYyAEqr-fXt3E4WHZKqg6bEat6iXxTyf77g/exec";
 
     const childNID = localStorage.getItem('childNID');
     const childName = localStorage.getItem('childName');
