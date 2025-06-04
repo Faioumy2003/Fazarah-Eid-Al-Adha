@@ -1,5 +1,5 @@
 window.onload = function() {
-    const SHEET_API = "https://script.google.com/macros/s/AKfycbxs5kV51X8t9T2J08pWU6v6eKo70liAPvPMYlI1TAWnV4CbrULFL6B7hNR-sfKknKCU/exec";
+    const SHEET_API = "https://script.google.com/macros/s/AKfycbySPAftT3_B718JP5vEve7TGe508x9X3BgSGH_QrZmwBn-94jxi0r_x-nFaAEIe6mpBoQ/exec";
 
     const childNID = localStorage.getItem('childNID');
     const childName = localStorage.getItem('childName');
@@ -80,6 +80,27 @@ window.onload = function() {
     let timer;
     let timeLeft = 30;
 
+    // زر إنهاء المسابقة - يتم إنشاؤه مرة واحدة فقط
+    let finishBtn = document.createElement('button');
+    finishBtn.id = "finish-btn";
+    finishBtn.textContent = "إنهاء المسابقة";
+    finishBtn.style.display = "none";
+    finishBtn.style.padding = "18px 40px";
+    finishBtn.style.fontSize = "1.2em";
+    finishBtn.style.margin = "20px auto";
+    finishBtn.style.background = "#4CAF50";
+    finishBtn.style.color = "#fff";
+    finishBtn.style.border = "none";
+    finishBtn.style.borderRadius = "10px";
+    finishBtn.style.cursor = "pointer";
+    finishBtn.onclick = function() { showResult(); };
+
+    // إضافة الزر بعد عناصر الكويز
+    let quizContent = document.querySelector('.quiz-content');
+    if (quizContent && !document.getElementById('finish-btn')) {
+        quizContent.appendChild(finishBtn);
+    }
+
     function showQuestion() {
         clearInterval(timer);
         timeLeft = 30;
@@ -87,7 +108,12 @@ window.onload = function() {
         startTimer();
 
         const q = questions[current];
-        document.getElementById('question-box').textContent = q.q;
+        // تكبير خط السؤال
+        let qBox = document.getElementById('question-box');
+        qBox.textContent = q.q;
+        qBox.style.fontSize = "1.6em";
+        qBox.style.fontWeight = "bold";
+        qBox.style.margin = "18px 0";
 
         const optionsBox = document.getElementById('options-box');
         optionsBox.innerHTML = "";
@@ -110,6 +136,13 @@ window.onload = function() {
 
         document.getElementById('confirm-btn').disabled = true;
         document.getElementById('next-btn').style.display = "none";
+
+        // إظهار زر إنهاء المسابقة فقط في آخر سؤال
+        if (current === 9) {
+            finishBtn.style.display = "block";
+        } else {
+            finishBtn.style.display = "none";
+        }
     }
 
     function startTimer() {
@@ -122,6 +155,10 @@ window.onload = function() {
             }
         }, 1000);
     }
+
+    document.getElementById('confirm-btn').style.fontSize = "1.3em"; // تكبير زر تأكيد الإجابة
+    document.getElementById('confirm-btn').style.padding = "14px 32px";
+    document.getElementById('confirm-btn').style.margin = "14px 0";
 
     document.getElementById('confirm-btn').onclick = function () {
         lockAnswer();
@@ -162,6 +199,7 @@ window.onload = function() {
         const resultBox = document.getElementById('result-box');
         resultBox.style.display = "block";
 
+        // يرسل النتائج لجوجل شيت تلقائيًا
         fetch(SHEET_API, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
