@@ -1,5 +1,5 @@
 window.onload = function() {
-    const SHEET_API = "https://script.google.com/macros/s/AKfycbxf7Ia9PjVrC2fCWkyHGGrY_kUmazGrCdLKcTLqcfw_xHeOs3ih-zoOfCX5aGlj9PCU-g/exec";
+    const SHEET_API = "https://script.google.com/macros/s/AKfycbzkSNJGpG8mU1MrnSq1CI_V1gAxepTXAhqKTSn0s3ro4BxuM8drYsCeQSvc49S847GWxw/exec";
 
     // تحقق من وجود بيانات الطفل
     const childNID = localStorage.getItem('childNID');
