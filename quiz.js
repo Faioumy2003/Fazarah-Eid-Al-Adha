@@ -1,4 +1,5 @@
 window.onload = function() {
+    // حذف أي كود لجوجل شيت أو حفظ النتائج في أماكن خارجية، فقط عرض الأسئلة والإجابات
     const childNID = localStorage.getItem('childNID');
     const childName = localStorage.getItem('childName');
     if (!childNID || !childName) {
@@ -8,6 +9,7 @@ window.onload = function() {
 
     document.getElementById('studentName').textContent = childName;
 
+    // التأكد من تحميل الأسئلة
     const easyQs = window.questionsBank && window.questionsBank.easy ? window.questionsBank.easy : [];
     const medQs  = window.questionsBank && window.questionsBank.medium ? window.questionsBank.medium : [];
     const hardQs = window.questionsBank && window.questionsBank.hard ? window.questionsBank.hard : [];
@@ -39,6 +41,7 @@ window.onload = function() {
     if (childAge >= 7 && childAge <= 8) dist = {easy: 6, medium: 3, hard: 1};
     else if (childAge >= 9) dist = {easy: 5, medium: 3, hard: 2};
 
+    // جمع الأسئلة من كل مستوى حسب السن
     let questions = [
         ...pickRandom(easyQs, dist.easy),
         ...pickRandom(medQs, dist.medium),
@@ -111,6 +114,7 @@ window.onload = function() {
 
         userAnswers.push(selectedOption);
 
+        // دعم كل من answer أو correct
         const correct = typeof questions[current].correct !== "undefined" ? questions[current].correct : questions[current].answer;
         if (selectedOption === correct) {
             score++;
@@ -141,47 +145,10 @@ window.onload = function() {
         }
     };
 
-    // دالة لحفظ النتيجة محليًا (LocalStorage)
-    function saveResultLocally(name, nid, score) {
-        let results = JSON.parse(localStorage.getItem('localResults') || "[]");
-        results.push({
-            name: name,
-            nid: nid,
-            score: score,
-            date: new Date().toLocaleString()
-        });
-        localStorage.setItem('localResults', JSON.stringify(results));
-    }
-
-    // دالة لتحميل النتائج كملف CSV
-    window.downloadResultsCSV = function() {
-        let results = JSON.parse(localStorage.getItem('localResults') || "[]");
-        if(results.length === 0) {
-            alert("لا توجد بيانات محفوظة بعد.");
-            return;
-        }
-        let csv = "الاسم,الرقم القومي,الدرجة,التاريخ\n";
-        results.forEach(r => {
-            csv += `"${r.name}","${r.nid}","${r.score}","${r.date}"\n`;
-        });
-        let blob = new Blob([csv], {type: 'text/csv'});
-        let url = URL.createObjectURL(blob);
-        let a = document.createElement('a');
-        a.href = url;
-        a.download = "quiz_results.csv";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    };
-
     function showResult() {
         document.querySelector('.quiz-content').style.display = "none";
         const resultBox = document.getElementById('result-box');
         resultBox.style.display = "block";
-
-        // حفظ النتيجة محليًا
-        saveResultLocally(childName, childNID, score);
 
         let messageHTML = "";
         if (score >= 8) {
@@ -200,12 +167,10 @@ window.onload = function() {
             `;
         }
 
-        // إضافة زر تحميل النتائج بعد ظهور النتيجة فقط
         resultBox.innerHTML = `
             <h2>انتهت المسابقة!</h2>
             <p>درجتك: ${score} من 10</p>
             ${messageHTML}
-            <button onclick="downloadResultsCSV()" style="margin-top:20px;padding:10px 20px;font-size:1.05em;border-radius:8px;background:#1976d2;color:#fff;border:none;cursor:pointer;">تحميل كل النتائج (CSV)</button>
         `;
     }
 
