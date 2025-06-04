@@ -1,4 +1,7 @@
-window.onload = function() {
+رwindow.onload = function() {
+    // ضع هنا رابط Google Apps Script الخاص بك:
+    const SHEET_API = "https://script.google.com/macros/s/AKfycbxf7Ia9PjVrC2fCWkyHGGrY_kUmazGrCdLKcTLqcfw_xHeOs3ih-zoOfCX5aGlj9PCU-g/exec";
+
     // تحقق من وجود بيانات الطفل
     const childNID = localStorage.getItem('childNID');
     const childName = localStorage.getItem('childName');
@@ -10,12 +13,35 @@ window.onload = function() {
     // عرض اسم الطفل
     document.getElementById('studentName').textContent = childName;
 
-    // تحديد بنك الأسئلة المناسب (يمكنك تغيير المنطق حسب السن مثلاً)
+    // تحديد بنك الأسئلة المناسب
     const questions = window.questionsBank && window.questionsBank.easy ? window.questionsBank.easy : [];
     if (!questions || questions.length === 0) {
         document.getElementById('question-box').textContent = "لا توجد أسئلة متاحة. تأكد من تحميل بنك الأسئلة بشكل صحيح.";
         return;
     }
+
+    // منع دخول الاختبار مرتين بنفس الرقم القومي
+    fetch(SHEET_API + `?nid=${encodeURIComponent(childNID)}&action=check`)
+    .then(res => res.json())
+    .then(data => {
+        if (data && data.exists) {
+            document.querySelector('.quiz-content').style.display = "none";
+            const resultBox = document.getElementById('result-box');
+            resultBox.style.display = "block";
+            resultBox.innerHTML = `
+                <div style="border:2px solid #f00; border-radius:10px; padding:20px; background:#fff0f0; color:#900; text-align:center; margin:30px 0;">
+                    لقد شاركت بالفعل ولا يمكنك دخول الاختبار مرة أخرى.
+                </div>
+            `;
+            return;
+        } else {
+            // ابدأ الامتحان
+            showQuestion();
+        }
+    })
+    .catch(() => {
+        document.getElementById('question-box').textContent = "حدث خطأ في التحقق من الاشتراك السابق. حاول التحديث أو التواصل مع المنظم.";
+    });
 
     // إعداد متغيرات الحالة
     let current = 0;
@@ -108,11 +134,23 @@ window.onload = function() {
         }
     };
 
-    // إظهار النتيجة النهائية
+    // إظهار النتيجة النهائية مع حفظها في Google Sheet
     function showResult() {
         document.querySelector('.quiz-content').style.display = "none";
         const resultBox = document.getElementById('result-box');
         resultBox.style.display = "block";
+
+        // إرسال النتيجة إلى Google Sheet
+        fetch(SHEET_API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: childName,
+                nid: childNID,
+                score: score
+            })
+        });
+
         let messageHTML = "";
         if (score >= 8) {
             messageHTML = `
@@ -129,12 +167,11 @@ window.onload = function() {
                 </div>
             `;
         }
-        resultBox.innerHTML = `<h2>انتهت المسابقة!</h2>
-            <p>أحسنت يا ${childName}!</p>
-            <p>درجتك: ${score} من 10</p>
-            ${messageHTML}`;
-    }
 
-    // ابدأ الامتحان
-    showQuestion();
+        resultBox.innerHTML = `
+            <h2>انتهت المسابقة!</h2>
+            <p>درجتك: ${score} من 10</p>
+            ${messageHTML}
+        `;
+    }
 };
