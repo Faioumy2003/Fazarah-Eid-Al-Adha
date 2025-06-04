@@ -1,3 +1,4 @@
+
 /* تكبير حجم الخط للعناصر */
 #question-box {
     font-size: 2rem;
@@ -40,4 +41,29 @@ label.incorrect {
     background: #ffd3d3 !important;
     color: #b80000 !important;
     border: 2px solid #ff5757;
+}
+/* ... باقي تنسيقاتك ... */
+
+/* تحسين شكل الاختيارات ليكون زر أنيق */
+.option-btn {
+    background: #f3f9fe;
+    border: 2px solid #90caf9;
+    color: #1976d2;
+    border-radius: 8px;
+    padding: 12px 18px;
+    margin: 7px 0;
+    font-size: 1.15em;
+    width: 100%;
+    text-align: right;
+    cursor: pointer;
+    transition: background 0.2s, border 0.2s, color 0.2s;
+    outline: none;
+    display: block;
+}
+.option-btn.selected,
+.option-btn:active {
+    background: #c5e1fa;
+    border-color: #1976d2;
+    color: #fff;
+    font-weight: bold;
 }
