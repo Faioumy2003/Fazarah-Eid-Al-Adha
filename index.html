@@ -85,6 +85,45 @@
         <span class="copyright-icon">©</span>
         <span>حقوق النشر محفوظة د. محمد محمود الفيومي</span>
     </footer>
-    <script src="script.js"></script>
+    <script>
+    // إضافة الكود المطلوب للانتقال التلقائي
+    document.querySelector('.entry-form').onsubmit = function(e){
+        e.preventDefault();
+        // التقاط البيانات
+        const fullName = document.getElementById('fullName').value.trim();
+        const nid = document.getElementById('nid').value.trim();
+        const commitment = document.getElementById('commitment').checked;
+        // تحقق الاسم
+        if(fullName.split(" ").length < 4){
+            alert("يرجى كتابة الاسم الرباعي كاملًا.");
+            return;
+        }
+        // تحقق الرقم القومي
+        if(!/^\d{14}$/.test(nid)){
+            alert("الرقم القومي يجب أن يكون 14 رقمًا.");
+            return;
+        }
+        // تحقق السن بناءً على الرقم القومي
+        const birthYear = nid[0] === '3'
+            ? parseInt('20' + nid.slice(1,3))
+            : parseInt('19' + nid.slice(1,3));
+        const currentYear = new Date().getFullYear();
+        let age = currentYear - birthYear;
+        if(age >= 13){
+            alert("المسابقة مخصصة فقط لمن هم أقل من 13 سنة.");
+            return;
+        }
+        // التزام التعهد
+        if(!commitment){
+            alert("يجب أن تتعهد أمام الله أنك ستحل بنفسك.");
+            return;
+        }
+        // حفظ البيانات محليًا
+        localStorage.setItem('childName', fullName);
+        localStorage.setItem('childNID', nid);
+        // الانتقال مباشرة لصفحة الاختبار
+        window.location.href = "quiz.html";
+    }
+    </script>
 </body>
 </html>
