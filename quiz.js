@@ -1,28 +1,3 @@
-// ضع هذا السطر أعلى الملف أو في مكان واضح
-const SAVE_API = "https://YOUR_DOMAIN/save_result.php"; // غيّر YOUR_DOMAIN إلى رابط موقعك الصحيح
-
-function saveResultRemotely(name, nid, score) {
-    fetch(SAVE_API, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({name, nid, score})
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            console.log("تم حفظ النتيجة على السيرفر");
-        } else {
-            alert("حدث خطأ في حفظ النتيجة على السيرفر!");
-        }
-    }).catch(() => alert("تعذر الاتصال بسيرفر النتائج!"));
-}
-
-// بعد حساب score وقبل عرض النتيجة أضف هذا السطر:
-saveResultRemotely(childName, childNID, score);
-
-
-
-
 window.onload = function() {
     const childNID = localStorage.getItem('childNID');
     const childName = localStorage.getItem('childName');
