@@ -1,4 +1,7 @@
 window.onload = function() {
+    // تم تعديل الرابط هنا فقط
+    const SHEET_API = "https://script.google.com/macros/s/AKfycbxo1lgbIfIBfvQERtuWutxCOGZni3SjINDjKjIWvhTFHOZcqelZbrG6NvVDNnrt3Flb/exec";
+
     const childNID = localStorage.getItem('childNID');
     const childName = localStorage.getItem('childName');
     if (!childNID || !childName) {
@@ -8,10 +11,9 @@ window.onload = function() {
 
     document.getElementById('studentName').textContent = childName;
 
-    // دعم جميع طرق تعريف الأسئلة (answer/correct)
-    const easyQs = window.questionsBank && Array.isArray(window.questionsBank.easy) ? window.questionsBank.easy : [];
-    const medQs  = window.questionsBank && Array.isArray(window.questionsBank.medium) ? window.questionsBank.medium : [];
-    const hardQs = window.questionsBank && Array.isArray(window.questionsBank.hard) ? window.questionsBank.hard : [];
+    const easyQs = window.questionsBank && window.questionsBank.easy ? window.questionsBank.easy : [];
+    const medQs  = window.questionsBank && window.questionsBank.medium ? window.questionsBank.medium : [];
+    const hardQs = window.questionsBank && window.questionsBank.hard ? window.questionsBank.hard : [];
 
     function shuffle(arr) {
         let a = [...arr];
@@ -47,19 +49,37 @@ window.onload = function() {
     ];
     questions = shuffle(questions).slice(0, 10);
 
-    // إذا لم يتم تحميل الأسئلة لأي سبب
-    if (!questions || questions.length === 0 || !questions[0] || !questions[0].q) {
+    if (!questions || questions.length === 0) {
         document.getElementById('question-box').textContent = "لا توجد أسئلة متاحة. تأكد من تحميل بنك الأسئلة بشكل صحيح.";
-        document.getElementById('options-box').innerHTML = "";
         return;
     }
+
+    fetch(SHEET_API + `?nid=${encodeURIComponent(childNID)}&action=check`)
+    .then(res => res.json())
+    .then(data => {
+        if (data && data.exists) {
+            document.querySelector('.quiz-content').style.display = "none";
+            const resultBox = document.getElementById('result-box');
+            resultBox.style.display = "block";
+            resultBox.innerHTML = `
+                <div style="border:2px solid #f00; border-radius:10px; padding:20px; background:#fff0f0; color:#900; text-align:center; margin:30px 0;">
+                    لقد شاركت بالفعل ولا يمكنك دخول الاختبار مرة أخرى.
+                </div>
+            `;
+            return;
+        } else {
+            showQuestion();
+        }
+    })
+    .catch(() => {
+        document.getElementById('question-box').textContent = "حدث خطأ في التحقق من الاشتراك السابق. حاول التحديث أو التواصل مع المنظم.";
+    });
 
     let current = 0;
     let userAnswers = [];
     let score = 0;
     let timer;
     let timeLeft = 30;
-    let selectedOption = -1;
 
     function showQuestion() {
         clearInterval(timer);
@@ -72,19 +92,21 @@ window.onload = function() {
 
         const optionsBox = document.getElementById('options-box');
         optionsBox.innerHTML = "";
-        selectedOption = -1;
         q.options.forEach((opt, idx) => {
-            const btn = document.createElement('button');
-            btn.type = "button";
-            btn.className = "option-btn";
-            btn.textContent = opt;
-            btn.onclick = function () {
-                Array.from(optionsBox.children).forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                selectedOption = idx;
-                document.getElementById('confirm-btn').disabled = false;
-            };
-            optionsBox.appendChild(btn);
+            const radio = document.createElement('input');
+            radio.type = "radio";
+            radio.name = "qOption";
+            radio.value = idx;
+            radio.id = "option" + idx;
+
+            radio.onchange = () => document.getElementById('confirm-btn').disabled = false;
+
+            const label = document.createElement('label');
+            label.htmlFor = radio.id;
+            label.style.display = "block";
+            label.appendChild(radio);
+            label.appendChild(document.createTextNode(opt));
+            optionsBox.appendChild(label);
         });
 
         document.getElementById('confirm-btn').disabled = true;
@@ -109,29 +131,20 @@ window.onload = function() {
     function lockAnswer() {
         clearInterval(timer);
 
-        // تعطيل كل الأزرار
-        Array.from(document.querySelectorAll('.option-btn')).forEach(btn => btn.disabled = true);
+        const options = document.getElementsByName('qOption');
+        let selected = -1;
+        options.forEach((opt) => {
+            opt.disabled = true;
+            if (opt.checked) selected = parseInt(opt.value);
+        });
 
-        userAnswers.push(selectedOption);
+        userAnswers.push(selected);
 
-        // دعم answer/correct
         const correct = typeof questions[current].correct !== "undefined" ? questions[current].correct : questions[current].answer;
-        if (selectedOption === correct) {
+        if (selected === correct) {
             score++;
         }
 
-        // إبراز الألوان
-        Array.from(document.querySelectorAll('.option-btn')).forEach((btn, idx) => {
-            if(idx === correct) btn.style.background = "#d4f7d4";
-            if(idx === selectedOption && selectedOption !== correct) btn.style.background = "#ffd3d3";
-        });
-
-        // إذا كان آخر سؤال: غيّر الزر إلى "إنهاء المسابقة"
-        if(current === 9){
-            document.getElementById('next-btn').textContent = "إنهاء المسابقة";
-        } else {
-            document.getElementById('next-btn').textContent = "السؤال التالي";
-        }
         document.getElementById('next-btn').style.display = "inline-block";
         document.getElementById('confirm-btn').disabled = true;
     }
@@ -149,6 +162,16 @@ window.onload = function() {
         document.querySelector('.quiz-content').style.display = "none";
         const resultBox = document.getElementById('result-box');
         resultBox.style.display = "block";
+
+        fetch(SHEET_API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: childName,
+                nid: childNID,
+                score: score
+            })
+        });
 
         let messageHTML = "";
         if (score >= 8) {
@@ -173,7 +196,4 @@ window.onload = function() {
             ${messageHTML}
         `;
     }
-
-    // عرض أول سؤال عند البداية
-    showQuestion();
 };
